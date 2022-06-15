@@ -14,8 +14,8 @@ const setupDrawSReact = (Core, listFunction) => {
           text = Core[prop];
         }
 
-        if (listTags[i].getAttribute("addModif") !== null) {
-          let name = listTags[i].getAttribute("addModif");
+        if (listTags[i].getAttribute("tmode") !== null) {
+          let name = listTags[i].getAttribute("tmode");
 
           const isFunc = name.indexOf(/[()]/) !== -1 ? true: false;
           name = name.replace(/[()]/, "");
@@ -125,20 +125,20 @@ const sReact = (objectData) => {
           const allTag = document.querySelectorAll(`*[tag='${prop}']`);
 
           for (let i = 0;i != allTag.length; i++) {
-            if (allTag[i].getAttribute("addModif") !== null) {
-              let modif = allTag[i].getAttribute("addModif");
-              const isFunc = modif.indexOf(/[()]/) !== -1 ? true: false;
-              modif = modif.replace(/[()]/, "");
+            if (allTag[i].getAttribute("tmode") !== null) {
+              let tMode = allTag[i].getAttribute("tmode");
+              const isFunc = tMode.indexOf(/[()]/) !== -1 ? true: false;
+              tMode = tMode.replace(/[()]/, "");
 
               if (isFunc) {
-                if (modif in listFunction) {
-                  allTag[i].innerHTML = n + listFunction[modif](text);
+                if (tMode in listFunction) {
+                  allTag[i].innerHTML = n + listFunction[tMode](text);
                 } else {
                   console.error(`can't find name of function`);
                   return false;
                 }
               } else {
-                allTag[i].innerHTML = n + modif;
+                allTag[i].innerHTML = n + tMode;
               }
             } else {
               if (typeof n === "object") {
