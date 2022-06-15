@@ -123,11 +123,13 @@ const createForBlocks = (i, Core) => {
         const array = Core[i];
 
         let object;
+        let lastObj;
 
         for (let m = 0; m !== array.length; m++) {
           if (m === 0) {
             object = item;
           } else {
+            lastObj = object;
             object = item.cloneNode(true);
           }
 
@@ -137,7 +139,9 @@ const createForBlocks = (i, Core) => {
               elem.innerHTML = array[m][k];
             }
           }
-          item.insertAdjacentElement('afterend', object);
+          m === 0
+            ? item.insertAdjacentElement('afterend', object)
+            : lastObj.insertAdjacentElement('afterend', object)
         }
       }
     }
