@@ -49,7 +49,7 @@ To match object content to tags, you need to use `tag`.
 </div>
 ```
 
-### 3.1 Creating a relationship between "input" and "tag"
+### 3.1 Creating a relationship between `input` and `tag`
 To create a link between input fields and all tags where `tag` is present, you need to add the `model` attribute to the `input` field. 
 
 `example:`
@@ -94,7 +94,7 @@ const sr = sReact({
 
 ```
 
-### 4. Change "data" from code
+### 4. Change `data` from code
 You can also change reactive variables from code
 
 `example:`
