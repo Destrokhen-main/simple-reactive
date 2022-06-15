@@ -1,23 +1,21 @@
 ### Script for simple-reactive
 
-#### 1. install
+### 1. install
 Download the index.js file.
 ` <script src="index.js"></script>`
 
-##### ! The script is now available to you. !
-
-#### 2. setup sReact
+### 2. setup sReact
 To create an object, use this construct
 ```
-  const sReact = sReact({
+const sReact = sReact({
     data: { Variables to be used },
     functions: { Functions for text modification. }
-  });
+});
 ```
 
-Example:
+`Example:`
 ```
-  const sReact = sReact({
+const sReact = sReact({
     data: { 
       text: "some text",
     },
@@ -29,38 +27,48 @@ Example:
           return text + " <-"
       }
     }
-  });
+});
 ```
 
-#### 3. Usage in html
+### 3. Usage in html
 Requires a `div` element to work
 
-example:
+`example:`
 ```
-  <div id="app">
+<div id="app">
     some html here!
-  </div>
+</div>
 ```
 
 To match object content to tags, you need to use `tag`.
 
-example:
+`example:`
 ```
-  <div id="app">
+<div id="app">
     <p tag="text"> <The text from the object will be inserted here> </p>
-  </div>
+</div>
 ```
 
-#### 3.1 Creating a relationship between "input" and "tag"
-To create a link between input fields and all tags where `tag` is present, you need to add the `model` attribute to the `input` field
+### 3.1 Creating a relationship between "input" and "tag"
+To create a link between input fields and all tags where `tag` is present, you need to add the `model` attribute to the `input` field. 
 
-example: 
+`example:`
 ```
-  <div id="app">
+<div id="app">
     <p tag="text"></p>
     <input type="text" model="text" />
-  </div>
+</div>
 ```
 
+You can also link between "select" and "tag"
+`example:`
+```
+<select model="text">
+    <option value='1'>---1---</option>
+</select>
+
+<p tag="text"></p>
+
+```
 
 

@@ -107,6 +107,7 @@ const parentNode = (Core) => {
       }
     }
   }
+  return true;
 }
 
 const sReact = (objectData) => {
@@ -159,7 +160,7 @@ const sReact = (objectData) => {
 
   const prerender = setupDrawSReact(Core, listFunction);
   const parent = parentNode(Core);
-  if (prerender) {
+  if (prerender && parent) {
     return Core;
   } else {
     Core = null;
