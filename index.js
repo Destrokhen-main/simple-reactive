@@ -110,7 +110,7 @@ const createForBlocks = (i, Core) => {
           }
           
           for (let k in array[m]) {
-            const innerElems = object.querySelectorAll(`[tag=${k}]`);
+            const innerElems = object.querySelectorAll(`[fb-${k}]`);
             for (let elem of innerElems) {
               elem.innerHTML = array[m][k];
             }
