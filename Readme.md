@@ -49,6 +49,7 @@ To match object content to tags, you need to use `tag`.
 </div>
 ```
 
+
 Optionally you can add a simple string or a string with HTML as object content
 
 `example:`
@@ -62,6 +63,7 @@ const sr = sReact({
 ```
 
 ### 3.1 Creating a relationship between "input" and "tag"
+
 To create a link between input fields and all tags where `tag` is present, you need to add the `model` attribute to the `input` field. 
 
 `example:`
@@ -85,6 +87,7 @@ You can also link between "select" and "tag"
 ```
 
 ### 3.2 Displaying elements with a for loop
+
 ### 3.2.1 To create multiple identical elements, add the "for" attribute to the element
 
 `example:`
@@ -163,7 +166,36 @@ const sr = sReact({
 
 ```
 
-### 4. Change "data" from code
+### 4. attribute `show`
+You can show your `div` or any other element by condition
+
+use `show` attribute
+
+`example:`
+add in data object boolean variable
+```
+{
+  ...
+  show: true,
+}
+```
+
+in `html`:
+```
+<div show="show">
+  some text
+</div>
+```
+
+now the data tag will turn on and off on its own
+
+p.s.
+on the `html tag` will add css style : `display: '' | none`
+
+!be careful!
+
+### 5. Change `data` from code
+
 You can also change reactive variables from code
 
 `example:`
@@ -180,3 +212,5 @@ OR
 
 sReact.text = "asd";
 ```
+
+
