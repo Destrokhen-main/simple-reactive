@@ -2,24 +2,24 @@ const setupDrawSReact = (Core, listFunction) => {
   const mainTag = document.getElementById("app");
   if (mainTag !== null) {
     const listTags = mainTag.querySelectorAll("*");
-
-    for (let i = 0; i != listTags.length; i++) {
+    
+    for (let i = 0; i !== listTags.length; i++) {
       if (listTags[i].getAttribute("tag") !== null) {
         const prop = listTags[i].getAttribute("tag");
-
+        
         let text = "";
         if (typeof Core[prop] === "object") {
           text = JSON.stringify(Core[prop])
         } else {
           text = Core[prop];
         }
-
+        
         if (listTags[i].getAttribute("tmode") !== null) {
           let name = listTags[i].getAttribute("tmode");
-
-          const isFunc = name.indexOf(/[()]/) !== -1 ? true: false;
+          
+          const isFunc = name.indexOf(/[()]/) !== -1;
           name = name.replace(/[()]/, "");
-
+          
           if (isFunc) {
             if (name in listFunction) {
               listTags[i].innerHTML = text + listFunction[name](text);
@@ -39,45 +39,54 @@ const setupDrawSReact = (Core, listFunction) => {
     console.error("Can't find parent block");
     return false;
   }
-
+  
   return true;
 }
 
 const parentNode = (Core) => {
   for (const i in Core) {
     const chunk = document.querySelectorAll(`*[for="${i}"]`);
-
+    
     if(chunk.length > 0) {
-      for (let y = 0; y != chunk.length; y++) {
+      for (let y = 0; y !== chunk.length; y++) {
         const parent = chunk[y].parentNode
-        const item = chunk[y].nodeName;
-
+        const itemTagName = chunk[y].nodeName;
+        const item = chunk[y];
+        
         let selectedValue = "";
         if (parent.getAttribute("model") !== null) {
           const node = parent.getAttribute("model");
           selectedValue = Core[node];
         }
-
+        
         if(Array.isArray(Core[i])) {
           const array = Core[i];
-          for (let m = 0; m != array.length; m++) {
-            const object = document.createElement(item);
-            object.innerHTML = array[m];
+          let object;
+          
+          for (let m = 0; m !== array.length; m++) {
+            if (m === 0) {
+              object = item;
+              object.innerHTML = array[m];
+            } else {
+              object = document.createElement(itemTagName);
+              object.innerHTML = array[m];
+              item.insertAdjacentElement('afterend', object);
+            }
+            
             if (selectedValue.toString() === array[m].toString()) {
               object.selected = true;
             }
-            parent.appendChild(object);
           }
         } else {
           console.error("for only be used for an array!")
         }
       }
     }
-
+    
     const inputBlocks = document.querySelectorAll(`input[model="${i}"]`);
     const selectBlock = document.querySelectorAll(`select[model="${i}"]`);
     if (inputBlocks.length > 0) {
-      for (let y = 0; y != inputBlocks.length; y++) {
+      for (let y = 0; y !== inputBlocks.length; y++) {
         const callback = (e) => {
           if (e.target.getAttribute("type") !== null) {
             const typeInput = e.target.getAttribute("type");
@@ -93,14 +102,14 @@ const parentNode = (Core) => {
             Core[i] = e.target.value;
           }
         }
-
+        
         inputBlocks[y].addEventListener("keyup", callback);
         inputBlocks[y].addEventListener("change", callback);
       }
     }
-
+    
     if (selectBlock.length > 0) {
-      for (let y = 0 ; y != selectBlock.length; y++) {
+      for (let y = 0 ; y !== selectBlock.length; y++) {
         selectBlock[y].addEventListener("change", (e) => {
           Core[i] = e.target.value;
         })
@@ -113,7 +122,7 @@ const parentNode = (Core) => {
 const sReact = (objectData) => {
   const listFunction = objectData["functions"] !== undefined ? objectData["functions"] : null;
   const data = objectData["data"] !== undefined ? objectData["data"] : null;
-
+  
   if (data === null) {
     console.error("! Can't create reactive object. Need a data object");
     return;
@@ -123,13 +132,13 @@ const sReact = (objectData) => {
       if (prop in target) {
         if (target[prop] !== n) {
           const allTag = document.querySelectorAll(`*[tag='${prop}']`);
-
-          for (let i = 0;i != allTag.length; i++) {
+          
+          for (let i = 0; i !== allTag.length; i++) {
             if (allTag[i].getAttribute("tmode") !== null) {
               let tMode = allTag[i].getAttribute("tmode");
-              const isFunc = tMode.indexOf(/[()]/) !== -1 ? true: false;
+              const isFunc = tMode.indexOf(/[()]/) !== -1;
               tMode = tMode.replace(/[()]/, "");
-
+              
               if (isFunc) {
                 if (tMode in listFunction) {
                   allTag[i].innerHTML = n + listFunction[tMode](text);
@@ -157,7 +166,7 @@ const sReact = (objectData) => {
       }
     }
   });
-
+  
   const prerender = setupDrawSReact(Core, listFunction);
   const parent = parentNode(Core);
   if (prerender && parent) {
