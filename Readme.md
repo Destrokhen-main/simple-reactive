@@ -73,3 +73,20 @@ You can also link between "select" and "tag"
 ```
 
 
+### 4. Change "data" from code
+You can also change reactive variables from code
+
+`example:`
+```
+const sReact = sReact({
+  data: { 
+    text: "some text",
+  }
+});
+
+sReact['text'] = "asd";
+
+OR
+
+sReact.text = "asd";
+```
