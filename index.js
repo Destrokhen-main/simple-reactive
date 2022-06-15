@@ -34,6 +34,9 @@ const setupDrawSReact = (Core, listFunction) => {
           listTags[i].innerHTML = text
         }
       }
+      if (listTags[i].getAttribute("if") !== null) {
+
+      }
     }
   } else {
     console.error("Can't find parent block");
@@ -128,6 +131,7 @@ const sReact = (objectData) => {
           if (ifAllTag.length > 0) {
             for (let i = 0; i != ifAllTag.length; i++) {
               const innerText = ifAllTag[i].innerHTML;
+
               if (target[prop]) {
                 ifAllTag[i].innerHTML = innerText;
               } else {
