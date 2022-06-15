@@ -72,6 +72,27 @@ You can also link between "select" and "tag"
 
 ```
 
+### 3.2 Displaying elements with a for loop
+To create multiple identical elements, add the "for" attribute to the element
+
+`example:`
+```
+<div id="app">
+  <p for="lst"></p>
+</div>
+```
+
+And add an array of elements (with the same name) to data in the sReact constructor
+
+`example:`
+```
+const sr = sReact({
+  data: {
+    lst: ["some text", "some text", "some text"],
+  },
+});
+
+```
 
 ### 4. Change "data" from code
 You can also change reactive variables from code
