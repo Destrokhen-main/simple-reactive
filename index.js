@@ -123,32 +123,47 @@ const sReact = (objectData) => {
       if (prop in target) {
         if (target[prop] !== n) {
           const allTag = document.querySelectorAll(`*[tag='${prop}']`);
+          const ifAllTag = document.querySelectorAll(`*[if='${prop}']`);
 
-          for (let i = 0;i != allTag.length; i++) {
-            if (allTag[i].getAttribute("tmode") !== null) {
-              let tMode = allTag[i].getAttribute("tmode");
-              const isFunc = tMode.indexOf(/[()]/) !== -1 ? true: false;
-              tMode = tMode.replace(/[()]/, "");
+          if (ifAllTag.length > 0) {
+            for (let i = 0; i != ifAllTag.length; i++) {
+              const innerText = ifAllTag[i].innerHTML;
+              if (target[prop]) {
+                ifAllTag[i].innerHTML = innerText;
+              } else {
+                ifAllTag[i].innerHTML = "";
+              }
+            }
+          }
 
-              if (isFunc) {
-                if (tMode in listFunction) {
-                  allTag[i].innerHTML = n + listFunction[tMode](text);
+          if (allTag.length > 0) {
+            for (let i = 0;i != allTag.length; i++) {
+              if (allTag[i].getAttribute("tmode") !== null) {
+                let tMode = allTag[i].getAttribute("tmode");
+                const isFunc = tMode.indexOf(/[()]/) !== -1 ? true: false;
+                tMode = tMode.replace(/[()]/, "");
+
+                if (isFunc) {
+                  if (tMode in listFunction) {
+                    allTag[i].innerHTML = n + listFunction[tMode](text);
+                  } else {
+                    console.error(`can't find name of function`);
+                    return false;
+                  }
                 } else {
-                  console.error(`can't find name of function`);
-                  return false;
+                  allTag[i].innerHTML = n + tMode;
                 }
               } else {
-                allTag[i].innerHTML = n + tMode;
-              }
-            } else {
-              if (typeof n === "object") {
-                allTag[i].innerHTML = JSON.stringify(n);
-              } else {
-                allTag[i].innerHTML = n;
+                if (typeof n === "object") {
+                  allTag[i].innerHTML = JSON.stringify(n);
+                } else {
+                  allTag[i].innerHTML = n;
+                }
               }
             }
           }
         }
+        target[prop] = n;
       }
     },
     get(target, prop) {
