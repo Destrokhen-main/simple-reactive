@@ -133,8 +133,8 @@ To create multiple identical blocks, add the "for-blocks" attribute to the eleme
 `example:`
 ```
 <div for-block="lst3" style="padding: 10px; border: 1px solid cadetblue">
-    <p tag="title"></p>
-    <p tag="description"></p>
+    <p fb-title></p>
+    <p fb-description></p>
 </div>
 ```
 
