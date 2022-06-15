@@ -15,7 +15,7 @@ const sReact = sReact({
 
 `Example:`
 ```
-const sReact = sReact({
+const sreact = sReact({
     data: { 
       text: "some text",
     },
