@@ -43,45 +43,93 @@ const setupDrawSReact = (Core, listFunction) => {
   return true;
 }
 
-const parentNode = (Core) => {
-  for (const i in Core) {
-    const chunk = document.querySelectorAll(`*[for="${i}"]`);
-    
-    if(chunk.length > 0) {
-      for (let y = 0; y !== chunk.length; y++) {
-        const parent = chunk[y].parentNode
-        const itemTagName = chunk[y].nodeName;
-        const item = chunk[y];
+const createForElements = (i, Core) => {
+  const chunk = document.querySelectorAll(`*[for="${i}"]`);
+  
+  if(chunk.length > 0) {
+    for (let y = 0; y !== chunk.length; y++) {
+      const parent = chunk[y].parentNode
+      const itemTagName = chunk[y].nodeName;
+      let item = chunk[y];
+      
+      let selectedValue = "";
+      if (parent.getAttribute("model") !== null) {
+        const node = parent.getAttribute("model");
+        selectedValue = Core[node];
+      }
+      
+      if(Array.isArray(Core[i])) {
+        const array = Core[i];
+        let object;
         
-        let selectedValue = "";
-        if (parent.getAttribute("model") !== null) {
-          const node = parent.getAttribute("model");
-          selectedValue = Core[node];
-        }
-        
-        if(Array.isArray(Core[i])) {
-          const array = Core[i];
-          let object;
+        for (let m = 0; m !== array.length; m++) {
+          if (m === 0) {
+            object = item;
+            object.innerHTML = typeof array[m] === "object" ? array[m].inner : array[m];
+          } else {
+            object = document.createElement(itemTagName);
+            object.innerHTML = typeof array[m] === "object" ? array[m].inner : array[m];
+            item.insertAdjacentElement('afterend', object);
+          }
           
-          for (let m = 0; m !== array.length; m++) {
-            if (m === 0) {
-              object = item;
-              object.innerHTML = array[m];
-            } else {
-              object = document.createElement(itemTagName);
-              object.innerHTML = array[m];
-              item.insertAdjacentElement('afterend', object);
-            }
-            
-            if (selectedValue.toString() === array[m].toString()) {
-              object.selected = true;
+          if (selectedValue.toString() === array[m].toString()) {
+            object.selected = true;
+          }
+          
+          if (typeof array[m] === "object") {
+            for (let k in array[m]) {
+              if (k !== "inner") object.setAttribute(k, array[m][k]);
             }
           }
-        } else {
-          console.error("for only be used for an array!")
+          
+          item = object;
         }
+      } else {
+        console.error("for only be used for an array!")
       }
     }
+  }
+}
+
+const createForBlocks = (i, Core) => {
+  const chunk = document.querySelectorAll(`*[for-block="${i}"]`);
+  
+  if(chunk.length > 0) {
+    for (let y = 0; y !== chunk.length; y++) {
+      let item = chunk[y];
+      
+      if(Array.isArray(Core[i])) {
+        const array = Core[i];
+        let object;
+        
+        for (let m = 0; m !== array.length; m++) {
+          if (m === 0) {
+            object = item;
+          } else {
+            object = item.cloneNode(true);
+          }
+          
+          for (let k in array[m]) {
+            const innerElems = object.querySelectorAll(`[tag=${k}]`);
+            for (let elem of innerElems) {
+              elem.innerHTML = array[m][k];
+            }
+          }
+          
+          item.insertAdjacentElement('afterend', object);
+          item = object;
+        }
+      } else {
+        console.error("for only be used for an array!")
+      }
+    }
+  }
+}
+
+const parentNode = (Core) => {
+  for (const i in Core) {
+    createForElements(i, Core);
+    createForBlocks(i, Core);
     
     const inputBlocks = document.querySelectorAll(`input[model="${i}"]`);
     const selectBlock = document.querySelectorAll(`select[model="${i}"]`);
