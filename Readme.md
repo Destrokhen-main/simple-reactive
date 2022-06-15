@@ -94,6 +94,34 @@ const sr = sReact({
 
 ```
 
+### 3.3 attribute `show`
+You can show your `div` or any other element by condition
+
+use `show` attribute
+
+`example:`
+add in data object boolean variable
+```
+{
+  ...
+  show: true,
+}
+```
+
+in `html`:
+```
+<div show="show">
+  some text
+</div>
+```
+
+now the data tag will turn on and off on its own
+
+p.s.
+on the `html tag` will add css style : `display: '' | none`
+
+!be careful!
+
 ### 4. Change `data` from code
 You can also change reactive variables from code
 
@@ -111,3 +139,5 @@ OR
 
 sReact.text = "asd";
 ```
+
+
