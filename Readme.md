@@ -1,4 +1,4 @@
-### Script for simple-reactive v0.0.1
+### Script for simple-reactive v1.0.0
 
 ### 1. install
 Download the index.js file.
