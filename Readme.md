@@ -61,6 +61,7 @@ To create a link between input fields and all tags where `tag` is present, you n
 ```
 
 You can also link between "select" and "tag"
+
 `example:`
 ```
 <select model="text">
