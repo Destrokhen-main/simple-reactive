@@ -136,8 +136,8 @@ const createForBlocks = (i, Core) => {
             for (let elem of innerElems) {
               elem.innerHTML = array[m][k];
             }
-            item.insertAdjacentElement('afterend', object);
           }
+          item.insertAdjacentElement('afterend', object);
         }
       }
     }
@@ -236,7 +236,9 @@ const sReact = (objectData) => {
           }
         }
         target[prop] = n;
+        return true;
       }
+      return false;
     },
     get(target, prop) {
       if (prop in target) {

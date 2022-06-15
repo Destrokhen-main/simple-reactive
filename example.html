@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Example</title>
+</head>
+<body>
+  <div id="app">
+    <p>Output text from `sample`</p>
+    <div>
+      <span> from `sample`: </span>
+      <span tag="sample"></span>
+    </div>
+    <hr />
+    <p>dynamic value</p>
+    <div>
+      <span> from `sample1` : </span>
+      <span tag="sample1"></span>
+    </div>
+    <input type="text" model="sample1" placeholder="input some text here" />
+    <hr />
+    <p> dynamic select </p>
+    <div>
+      <span> from `sample2` : </span>
+      <span tag="sample2"></span>
+    </div>
+    <select model="sample2">
+      <option>value-1</option>
+      <option>value-2</option>
+      <option>value-3</option>
+    </select>
+    <hr />
+    <p> dynamic + for in select</p>
+    <div>
+      <span> from `sample3` : </span>
+      <span tag="sample3"></span>
+    </div>
+    <select model="sample3">
+      <option for="listSample3"></option>
+    </select>
+    <hr />
+    <p> dynamic + for in select (object)</p>
+    <div>
+      <span> from `sample3` : </span>
+      <span tag="sample4"></span>
+    </div>
+    <select model="sample4">
+      <option for="listSample4"></option>
+    </select>
+    <hr />
+    <p> for-block </p>
+    <div for-block="listSample5">
+      <div fb-attr1></div>
+      <div fb-attr2></div>
+      <hr />
+    </div>
+  </div>
+  <script src="index.js"></script>
+  <script>
+    const obj = sReact({
+      data: {
+        sample: "text",
+        sample1: "",
+        sample2: "",
+        sample3: "",
+        listSample3: [1,2,3,4,5,6],
+        sample4: "",
+        listSample4: [{
+            value: "value 1",
+            inner: "text for select 1"
+          },
+          {
+            value: "value 2",
+            inner: "text for select 2"
+          },
+        ],
+        listSample5: [
+          {
+            attr1: "text",
+            attr2: "foo"
+          },
+          {
+            attr1: "text-1",
+            attr2: "foo"
+          },
+          {
+            attr1: "text-2",
+            attr2: "foo"
+          }
+        ]
+      }
+    })
+  </script>
+</body>
+</html>
