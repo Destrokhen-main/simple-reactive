@@ -68,6 +68,12 @@
     <p>Put html code</p>
 
     <div for="listSample6"></div>
+
+    <hr />
+    <p> dynamic text </p>
+    <div>
+      <p tag="text"></p>
+    </div>
   </div>
   <script src="index.js"></script>
   <script>
@@ -112,9 +118,25 @@
           ` <div class="example6">
             block-2
           </div>`
-        ]
+        ],
+        text: ""
       }
-    })
+    });
+    
+    const arSomeText = "this text need print".split("");
+    let forward = true;
+    setInterval(() => {
+      if (forward) {
+        if (arSomeText.length > obj.text.length)
+          obj.text += arSomeText[obj.text.length];
+        else
+          forward = false;
+      } else {
+        obj.text = obj.text.slice(0,obj.text.length-1);
+        if (obj.text.length === 0)
+          forward = true;
+      }
+    }, 100);
   </script>
 </body>
 </html>
