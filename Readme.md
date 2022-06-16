@@ -199,17 +199,17 @@ You can also change reactive variables from code
 
 `example:`
 ```
-const sReact = sReact({
+const sreact = sReact({
   data: { 
     text: "some text",
   }
 });
 
-sReact['text'] = "asd";
+sreact['text'] = "asd";
 
 OR
 
-sReact.text = "asd";
+sreact.text = "asd";
 ```
 
 
