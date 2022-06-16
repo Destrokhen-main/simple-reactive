@@ -3,7 +3,7 @@ const setupDrawSReact = (Core, listFunction) => {
   if (mainTag !== null) {
     const listTags = mainTag.querySelectorAll("*");
 
-    for (let i = 0; i != listTags.length; i++) {
+    for (let i = 0; i !== listTags.length; i++) {
       if (listTags[i].getAttribute("tag") !== null) {
         const prop = listTags[i].getAttribute("tag");
 
@@ -14,10 +14,10 @@ const setupDrawSReact = (Core, listFunction) => {
           text = Core[prop];
         }
 
-        if (listTags[i].getAttribute("addModif") !== null) {
-          let name = listTags[i].getAttribute("addModif");
+        if (listTags[i].getAttribute("tmode") !== null) {
+          let name = listTags[i].getAttribute("tmode");
 
-          const isFunc = name.indexOf(/[()]/) !== -1 ? true: false;
+          const isFunc = name.indexOf(/[()]/) !== -1;
           name = name.replace(/[()]/, "");
 
           if (isFunc) {
@@ -34,6 +34,28 @@ const setupDrawSReact = (Core, listFunction) => {
           listTags[i].innerHTML = text
         }
       }
+
+      if (listTags[i].getAttribute("show") !== null) {
+        const show = listTags[i].getAttribute("show");
+
+        const value = Core[show];
+
+        if (value) {
+          listTags[i].style.display = "";
+        } else {
+          listTags[i].style.display = "none";
+        }
+      }
+
+      if (listTags[i].getAttribute("for-block") !== null) {
+        const name = listTags[i].getAttribute("for-block");
+        createForBlocks(name, Core);
+      }
+
+      if (listTags[i].getAttribute("for") !== null) {
+        const name = listTags[i].getAttribute("for");
+        createForElements(name, Core);
+      }
     }
   } else {
     console.error("Can't find parent block");
@@ -43,41 +65,92 @@ const setupDrawSReact = (Core, listFunction) => {
   return true;
 }
 
-const parentNode = (Core) => {
-  for (const i in Core) {
-    const chunk = document.querySelectorAll(`*[for="${i}"]`);
+const createForElements = (i, Core) => {
+  const chunk = document.querySelectorAll(`*[for="${i}"]`);
 
-    if(chunk.length > 0) {
-      for (let y = 0; y != chunk.length; y++) {
-        const parent = chunk[y].parentNode
-        const item = chunk[y].nodeName;
+  if(chunk.length > 0) {
+    for (let y = 0; y !== chunk.length; y++) {
+      const parent = chunk[y].parentNode
+      const itemTagName = chunk[y].nodeName;
+      let item = chunk[y];
 
-        let selectedValue = "";
-        if (parent.getAttribute("model") !== null) {
-          const node = parent.getAttribute("model");
-          selectedValue = Core[node];
-        }
+      let selectedValue = "";
+      if (parent.getAttribute("model") !== null) {
+        const node = parent.getAttribute("model");
+        selectedValue = Core[node];
+      }
 
-        if(Array.isArray(Core[i])) {
-          const array = Core[i];
-          for (let m = 0; m != array.length; m++) {
-            const object = document.createElement(item);
-            object.innerHTML = array[m];
-            if (selectedValue.toString() === array[m].toString()) {
-              object.selected = true;
-            }
-            parent.appendChild(object);
+      if(Array.isArray(Core[i])) {
+        const array = Core[i];
+        let object;
+
+        for (let m = 0; m !== array.length; m++) {
+          if (m === 0) {
+            object = item;
+            object.innerHTML = typeof array[m] === "object" ? array[m].inner : array[m];
+          } else {
+            object = document.createElement(itemTagName);
+            object.innerHTML = typeof array[m] === "object" ? array[m].inner : array[m];
+            item.insertAdjacentElement('afterend', object);
           }
-        } else {
-          console.error("for only be used for an array!")
+
+          if (selectedValue.toString() === array[m].toString()) {
+            object.selected = true;
+          }
+
+          if (typeof array[m] === "object") {
+            for (let k in array[m]) {
+              if (k !== "inner") object.setAttribute(k, array[m][k]);
+            }
+          }
+
+          item = object;
+        }
+      } else {
+        console.error("for only be used for an array!")
+      }
+    }
+  }
+}
+
+const createForBlocks = (i, Core) => {
+  const chunk = document.querySelectorAll(`*[for-block="${i}"]`);
+  if(chunk.length > 0) {
+    for (let y = 0; y !== chunk.length; y++) {
+      let item = chunk[y];
+
+      if(Array.isArray(Core[i])) {
+        const array = Core[i];
+
+        let object;
+
+        for (let m = 0; m !== array.length; m++) {
+          if (m === 0) {
+            object = item;
+          } else {
+            object = item.cloneNode(true);
+          }
+
+          for (let k in array[m]) {
+            const innerElems = object.querySelectorAll(`[fb-${k}]`);
+            for (let elem of innerElems) {
+              elem.innerHTML = array[m][k];
+            }
+          }
+          item.insertAdjacentElement('afterend', object)
+          item = object;
         }
       }
     }
+  }
+}
 
+const parentNode = (Core) => {
+  for (const i in Core) {
     const inputBlocks = document.querySelectorAll(`input[model="${i}"]`);
     const selectBlock = document.querySelectorAll(`select[model="${i}"]`);
     if (inputBlocks.length > 0) {
-      for (let y = 0; y != inputBlocks.length; y++) {
+      for (let y = 0; y !== inputBlocks.length; y++) {
         const callback = (e) => {
           if (e.target.getAttribute("type") !== null) {
             const typeInput = e.target.getAttribute("type");
@@ -100,7 +173,7 @@ const parentNode = (Core) => {
     }
 
     if (selectBlock.length > 0) {
-      for (let y = 0 ; y != selectBlock.length; y++) {
+      for (let y = 0 ; y !== selectBlock.length; y++) {
         selectBlock[y].addEventListener("change", (e) => {
           Core[i] = e.target.value;
         })
@@ -124,32 +197,49 @@ const sReact = (objectData) => {
         if (target[prop] !== n) {
           const allTag = document.querySelectorAll(`*[tag='${prop}']`);
 
-          for (let i = 0;i != allTag.length; i++) {
-            if (allTag[i].getAttribute("addModif") !== null) {
-              let modif = allTag[i].getAttribute("addModif");
-              const isFunc = modif.indexOf(/[()]/) !== -1 ? true: false;
-              modif = modif.replace(/[()]/, "");
+          const showTags = document.querySelectorAll(`*[show='${prop}']`);
 
-              if (isFunc) {
-                if (modif in listFunction) {
-                  allTag[i].innerHTML = n + listFunction[modif](text);
+          if (showTags.length > 0) {
+            for (let i = 0; i != showTags.length; i++) {
+              if (n) {
+                showTags[i].style.display = "block";
+              } else {
+                showTags[i].style.display = "none";
+              }
+            }
+          }
+
+          if (allTag.length > 0) {
+            for (let i = 0; i !== allTag.length; i++) {
+              if (allTag[i].getAttribute("tmode") !== null) {
+                let tMode = allTag[i].getAttribute("tmode");
+                const isFunc = tMode.indexOf(/[()]/) !== -1;
+                tMode = tMode.replace(/[()]/, "");
+
+                if (isFunc) {
+                  if (tMode in listFunction) {
+                    allTag[i].innerHTML = n + listFunction[tMode](text);
+                  } else {
+                    console.error(`can't find name of function`);
+                    return false;
+                  }
                 } else {
-                  console.error(`can't find name of function`);
-                  return false;
+                  allTag[i].innerHTML = n + tMode;
                 }
               } else {
-                allTag[i].innerHTML = n + modif;
-              }
-            } else {
-              if (typeof n === "object") {
-                allTag[i].innerHTML = JSON.stringify(n);
-              } else {
-                allTag[i].innerHTML = n;
+                if (typeof n === "object") {
+                  allTag[i].innerHTML = JSON.stringify(n);
+                } else {
+                  allTag[i].innerHTML = n;
+                }
               }
             }
           }
         }
+        target[prop] = n;
+        return true;
       }
+      return false;
     },
     get(target, prop) {
       if (prop in target) {
