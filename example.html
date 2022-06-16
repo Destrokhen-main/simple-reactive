@@ -7,6 +7,14 @@
   <title>Example</title>
 </head>
 <body>
+  <style>
+    .example6 {
+      padding: 10px;
+      background-color: grey;
+      margin: 10px;
+      width: 100px;
+    }
+  </style>
   <div id="app">
     <p>Output text from `sample`</p>
     <div>
@@ -56,6 +64,10 @@
       <div fb-attr2></div>
       <hr />
     </div>
+    
+    <p>Put html code</p>
+
+    <div for="listSample6"></div>
   </div>
   <script src="index.js"></script>
   <script>
@@ -89,6 +101,17 @@
             attr1: "text-2",
             attr2: "foo"
           }
+        ],
+        listSample6: [
+          ` <div class="example6">
+            block
+          </div>`,
+          ` <div class="example6">
+            block-1
+          </div>`,
+          ` <div class="example6">
+            block-2
+          </div>`
         ]
       }
     })
