@@ -1,3 +1,27 @@
+const setupSReactProperty = (Core, prop, tag, text) => {
+  if (Core.sReactProperty[prop] === undefined) {
+    Core.sReactProperty[prop] = {};
+  }
+
+  Core.sReactProperty[prop]["value"] = text;
+  if (Core.sReactProperty[prop]["child"] !== undefined) {
+    Core.sReactProperty[prop]["child"].push(tag);
+  } else {
+    Core.sReactProperty[prop]["child"] = [tag]
+  }
+}
+
+const setupSReactPropertyFor = (Core, prop, tag, value) => {
+  if (Core.sReactProperty[prop] === undefined) {
+    Core.sReactProperty[prop] = [];
+  }
+
+  Core.sReactProperty[prop].push({
+    value,
+    tag
+  });
+}
+
 const setupDrawSReact = (Core, listFunction) => {
   const mainTag = document.getElementById("app");
   if (mainTag !== null) {
@@ -13,6 +37,8 @@ const setupDrawSReact = (Core, listFunction) => {
         } else {
           text = Core[prop];
         }
+
+        setupSReactProperty(Core, prop, listTags[i], text);
 
         if (listTags[i].getAttribute("tmode") !== null) {
           let name = listTags[i].getAttribute("tmode");
@@ -40,6 +66,8 @@ const setupDrawSReact = (Core, listFunction) => {
 
         const value = Core[show];
 
+        setupSReactProperty(Core, show, listTags[i], value);
+
         if (value) {
           listTags[i].style.display = "";
         } else {
@@ -49,7 +77,7 @@ const setupDrawSReact = (Core, listFunction) => {
 
       if (listTags[i].getAttribute("for-block") !== null) {
         const name = listTags[i].getAttribute("for-block");
-        createForBlocks(name, Core);
+        createForBlocks(name, Core, listTags[i]);
       }
 
       if (listTags[i].getAttribute("for") !== null) {
@@ -104,6 +132,7 @@ const createForElements = (i, Core) => {
             }
           }
 
+          setupSReactPropertyFor(Core, i, item, array[m]);
           item = object;
         }
       } else {
@@ -131,13 +160,15 @@ const createForBlocks = (i, Core) => {
             object = item.cloneNode(true);
           }
 
+
           for (let k in array[m]) {
             const innerElems = object.querySelectorAll(`[fb-${k}]`);
             for (let elem of innerElems) {
               elem.innerHTML = array[m][k];
             }
           }
-          item.insertAdjacentElement('afterend', object)
+          item.insertAdjacentElement('afterend', object);
+          setupSReactPropertyFor(Core, i, item, array[m]);
           item = object;
         }
       }
@@ -191,8 +222,20 @@ const sReact = (objectData) => {
     console.error("! Can't create reactive object. Need a data object");
     return;
   }
+
+  if ("sReactProperty" in data) {
+    console.error("! sReactProperty const value");
+    return;
+  }
+
+  data["sReactProperty"] = {};
+
   let Core = new Proxy(data, {
     set(target, prop, n) {
+      if (prop === "sReactProperty") {
+        target[prop] = n;
+        return true;
+      }
       if (prop in target) {
         if (target[prop] !== n) {
           const allTag = document.querySelectorAll(`*[tag='${prop}']`);
