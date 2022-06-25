@@ -1,13 +1,23 @@
-const setupSReactProperty = (Core, prop, tag, text) => {
+const setupSReactProperty = (Core, prop, tag, value) => {
   if (Core.sReactProperty[prop] === undefined) {
     Core.sReactProperty[prop] = {};
   }
 
-  Core.sReactProperty[prop]["value"] = text;
+  Core.sReactProperty[prop]["value"] = value;
   if (Core.sReactProperty[prop]["child"] !== undefined) {
     Core.sReactProperty[prop]["child"].push(tag);
   } else {
-    Core.sReactProperty[prop]["child"] = [tag]
+    Core.sReactProperty[prop]["child"] = [tag];
+  }
+  
+  if (tag.getAttribute("if") !== null) {
+    const elemComment = document.createComment(`if="${prop}"`);
+    
+    if (Core.sReactProperty[prop]["comment"] !== undefined) {
+      Core.sReactProperty[prop]["comment"].push(elemComment);
+    } else {
+      Core.sReactProperty[prop]["comment"] = [elemComment];
+    }
   }
 }
 
@@ -79,6 +89,13 @@ const setupDrawSReact = (Core, listFunction) => {
           listTags[i].style.display = "none";
         }
       }
+      
+      if (listTags[i].getAttribute("if") !== null) {
+        const name = listTags[i].getAttribute("if");
+        const value = Core[name];
+        setupSReactProperty(Core, name, listTags[i], value);
+        createIfElement(name, Core);
+      }
 
       if (listTags[i].getAttribute("for-block") !== null) {
         const name = listTags[i].getAttribute("for-block");
@@ -101,13 +118,28 @@ const setupDrawSReact = (Core, listFunction) => {
   return true;
 }
 
+const createIfElement = (i, Core) => {
+  const elemProps = Core.sReactProperty[i];
+  const elemChild = elemProps.child;
+  const elemComments = elemProps.comment;
+  
+  for (let y = 0; y !== elemChild.length; y++) {
+    if (!Core.sReactProperty[i].value) {
+      elemChild[y].parentNode.insertBefore(elemComments[y], elemChild[y]);
+      elemChild[y].remove();
+    } else if (elemComments[y].parentNode !== null) {
+      elemComments[y].parentNode.insertBefore(elemChild[y], elemComments[y]);
+      elemComments[y].remove();
+    }
+  }
+}
+
 const createForElements = (i, Core) => {
   const chunk = document.querySelectorAll(`*[for="${i}"]`);
   const childrenElem = document.querySelectorAll(`[child="${i}"]`);
   childrenElem.forEach(item => item.remove());
 
-  if(chunk.length > 0) {
-    for (let y = 0; y !== chunk.length; y++) {
+  for (let y = 0; y !== chunk.length; y++) {
       const parent = chunk[y].parentNode;
       let item = chunk[y];
 
@@ -148,7 +180,6 @@ const createForElements = (i, Core) => {
         console.error("for only be used for an array!")
       }
     }
-  }
 }
 
 const createForBlocks = (i, Core) => {
@@ -156,8 +187,7 @@ const createForBlocks = (i, Core) => {
   const childrenElem = document.querySelectorAll(`[child="${i}"]`);
   childrenElem.forEach(item => item.remove());
   
-  if(chunk.length > 0) {
-    for (let y = 0; y !== chunk.length; y++) {
+  for (let y = 0; y !== chunk.length; y++) {
       let item = chunk[y];
 
       if(Array.isArray(Core.sReactProperty[i].value)) {
@@ -185,42 +215,38 @@ const createForBlocks = (i, Core) => {
         }
       }
     }
-  }
 }
 
 const parentNode = (Core) => {
   for (const i in Core) {
     const inputBlocks = document.querySelectorAll(`input[model="${i}"]`);
     const selectBlock = document.querySelectorAll(`select[model="${i}"]`);
-    if (inputBlocks.length > 0) {
-      for (let y = 0; y !== inputBlocks.length; y++) {
-        const callback = (e) => {
-          if (e.target.getAttribute("type") !== null) {
-            const typeInput = e.target.getAttribute("type");
-            switch (typeInput) {
-              case "number":
-                Core[i] = e.target.value === "" ? 0 : e.target.value;
-                break;
-              default:
-                Core[i] = e.target.value;
-                break;
-            }
-          } else {
-            Core[i] = e.target.value;
+
+    for (let y = 0; y !== inputBlocks.length; y++) {
+      const callback = (e) => {
+        if (e.target.getAttribute("type") !== null) {
+          const typeInput = e.target.getAttribute("type");
+          switch (typeInput) {
+            case "number":
+              Core[i] = e.target.value === "" ? 0 : e.target.value;
+              break;
+            default:
+              Core[i] = e.target.value;
+              break;
           }
-        }
-
-        inputBlocks[y].addEventListener("keyup", callback);
-        inputBlocks[y].addEventListener("change", callback);
-      }
-    }
-
-    if (selectBlock.length > 0) {
-      for (let y = 0 ; y !== selectBlock.length; y++) {
-        selectBlock[y].addEventListener("change", (e) => {
+        } else {
           Core[i] = e.target.value;
-        })
+        }
       }
+
+      inputBlocks[y].addEventListener("keyup", callback);
+      inputBlocks[y].addEventListener("change", callback);
+    }
+    
+    for (let y = 0 ; y !== selectBlock.length; y++) {
+      selectBlock[y].addEventListener("change", (e) => {
+        Core[i] = e.target.value;
+      })
     }
   }
   return true;
@@ -253,6 +279,7 @@ const sReact = (objectData) => {
           target[prop] = n;
           target.sReactProperty[prop].value = n;
           
+          // вот чтоб вот это не делать можно теоретически в sReactProperty подставить type объектам
           const allTag = document.querySelectorAll(`*[tag='${prop}']`);
           const forBlockTags = document.querySelectorAll(`[for-block="${prop}"]`);
           const forElemsTags = document.querySelectorAll(`[for="${prop}"]`);
@@ -266,18 +293,20 @@ const sReact = (objectData) => {
             createForElements(prop, target);
           }
           
-          if (showTags.length > 0) {
-            for (let i = 0; i !== showTags.length; i++) {
-              if (n) {
-                showTags[i].style.display = "block";
-              } else {
-                showTags[i].style.display = "none";
-              }
+          if (target.sReactProperty[prop].comment !== undefined) {
+            createIfElement(prop, target);
+          }
+          
+          for (let i = 0; i !== showTags.length; i++) {
+            if (n) {
+              showTags[i].style.display = "block";
+            } else {
+              showTags[i].style.display = "none";
             }
           }
 
-          if (allTag.length > 0) {
-            for (let i = 0; i !== allTag.length; i++) {
+
+          for (let i = 0; i !== allTag.length; i++) {
               if (allTag[i].getAttribute("tmode") !== null) {
                 let tMode = allTag[i].getAttribute("tmode");
                 const isFunc = tMode.indexOf(/[()]/) !== -1;
@@ -301,7 +330,6 @@ const sReact = (objectData) => {
                 }
               }
             }
-          }
         }
         return true;
       }
