@@ -11,15 +11,20 @@ const setupSReactProperty = (Core, prop, tag, text) => {
   }
 }
 
-const setupSReactPropertyFor = (Core, prop, tag, value) => {
+const setupSReactPropertyFor = (Core, prop, tag) => {
+  const tagWithoutAttr = document.createElement(tag.tagName);
+  tagWithoutAttr.innerHTML = tag.innerHTML;
+  tagWithoutAttr.setAttribute("child", prop);
+  
   if (Core.sReactProperty[prop] === undefined) {
-    Core.sReactProperty[prop] = [];
+    Core.sReactProperty[prop] = {
+      value: [],
+      child: [],
+    };
   }
-
-  Core.sReactProperty[prop].push({
-    value,
-    tag
-  });
+  
+  Core.sReactProperty[prop].value = Core[prop];
+  Core.sReactProperty[prop].child = [...Core.sReactProperty[prop].child, tagWithoutAttr];
 }
 
 const setupDrawSReact = (Core, listFunction) => {
@@ -77,11 +82,14 @@ const setupDrawSReact = (Core, listFunction) => {
 
       if (listTags[i].getAttribute("for-block") !== null) {
         const name = listTags[i].getAttribute("for-block");
+        setupSReactPropertyFor(Core, name, listTags[i]);
         createForBlocks(name, Core, listTags[i]);
       }
 
       if (listTags[i].getAttribute("for") !== null) {
         const name = listTags[i].getAttribute("for");
+        console.log(listTags[i])
+        setupSReactPropertyFor(Core, name, listTags[i]);
         createForElements(name, Core);
       }
     }
@@ -95,11 +103,12 @@ const setupDrawSReact = (Core, listFunction) => {
 
 const createForElements = (i, Core) => {
   const chunk = document.querySelectorAll(`*[for="${i}"]`);
+  const childrenElem = document.querySelectorAll(`[child="${i}"]`);
+  childrenElem.forEach(item => item.remove());
 
   if(chunk.length > 0) {
     for (let y = 0; y !== chunk.length; y++) {
-      const parent = chunk[y].parentNode
-      const itemTagName = chunk[y].nodeName;
+      const parent = chunk[y].parentNode;
       let item = chunk[y];
 
       let selectedValue = "";
@@ -108,31 +117,31 @@ const createForElements = (i, Core) => {
         selectedValue = Core[node];
       }
 
-      if(Array.isArray(Core[i])) {
-        const array = Core[i];
+      if(Array.isArray(Core.sReactProperty[i].value)) {
+        const arrayValue = Core.sReactProperty[i].value;
+        const arrayChild = Core.sReactProperty[i].child;
         let object;
 
-        for (let m = 0; m !== array.length; m++) {
+        for (let m = 0; m !== arrayValue.length; m++) {
           if (m === 0) {
             object = item;
-            object.innerHTML = typeof array[m] === "object" ? array[m].inner : array[m];
+            object.innerHTML = typeof arrayValue[m] === "object" ? arrayValue[m].inner : arrayValue[m];
           } else {
-            object = document.createElement(itemTagName);
-            object.innerHTML = typeof array[m] === "object" ? array[m].inner : array[m];
+            object = arrayChild[y].cloneNode(true);
+            object.innerHTML = typeof arrayValue[m] === "object" ? arrayValue[m].inner : arrayValue[m];
             item.insertAdjacentElement('afterend', object);
           }
-
-          if (selectedValue.toString() === array[m].toString()) {
+          
+          if (selectedValue.toString() === arrayValue[m].toString()) {
             object.selected = true;
           }
 
-          if (typeof array[m] === "object") {
-            for (let k in array[m]) {
-              if (k !== "inner") object.setAttribute(k, array[m][k]);
+          if (typeof arrayValue[m] === "object") {
+            for (let k in arrayValue[m]) {
+              if (k !== "inner") object.setAttribute(k, arrayValue[m][k]);
             }
           }
 
-          setupSReactPropertyFor(Core, i, item, array[m]);
           item = object;
         }
       } else {
@@ -144,31 +153,34 @@ const createForElements = (i, Core) => {
 
 const createForBlocks = (i, Core) => {
   const chunk = document.querySelectorAll(`*[for-block="${i}"]`);
+  const childrenElem = document.querySelectorAll(`[child="${i}"]`);
+  childrenElem.forEach(item => item.remove());
+  
   if(chunk.length > 0) {
     for (let y = 0; y !== chunk.length; y++) {
       let item = chunk[y];
 
-      if(Array.isArray(Core[i])) {
-        const array = Core[i];
+      if(Array.isArray(Core.sReactProperty[i].value)) {
+        const arrayValue = Core.sReactProperty[i].value;
+        const arrayChild = Core.sReactProperty[i].child;
 
         let object;
 
-        for (let m = 0; m !== array.length; m++) {
+        for (let m = 0; m !== arrayValue.length; m++) {
           if (m === 0) {
             object = item;
           } else {
-            object = item.cloneNode(true);
+            object = arrayChild[y].cloneNode(true);
           }
 
 
-          for (let k in array[m]) {
+          for (let k in arrayValue[m]) {
             const innerElems = object.querySelectorAll(`[fb-${k}]`);
             for (let elem of innerElems) {
-              elem.innerHTML = array[m][k];
+              elem.innerHTML = arrayValue[m][k];
             }
           }
           item.insertAdjacentElement('afterend', object);
-          setupSReactPropertyFor(Core, i, item, array[m]);
           item = object;
         }
       }
@@ -238,12 +250,24 @@ const sReact = (objectData) => {
       }
       if (prop in target) {
         if (target[prop] !== n) {
+          target[prop] = n;
+          target.sReactProperty[prop].value = n;
+          
           const allTag = document.querySelectorAll(`*[tag='${prop}']`);
-
+          const forBlockTags = document.querySelectorAll(`[for-block="${prop}"]`);
+          const forElemsTags = document.querySelectorAll(`[for="${prop}"]`);
           const showTags = document.querySelectorAll(`*[show='${prop}']`);
-
+          
+          if (forBlockTags.length !== 0) {
+            createForBlocks(prop, target);
+          }
+          
+          if (forElemsTags.length !== 0) {
+            createForElements(prop, target);
+          }
+          
           if (showTags.length > 0) {
-            for (let i = 0; i != showTags.length; i++) {
+            for (let i = 0; i !== showTags.length; i++) {
               if (n) {
                 showTags[i].style.display = "block";
               } else {
@@ -279,7 +303,6 @@ const sReact = (objectData) => {
             }
           }
         }
-        target[prop] = n;
         return true;
       }
       return false;
