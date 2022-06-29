@@ -143,6 +143,12 @@ const sReact = (setup) => {
       switch (block.attributes[0].name) {
         case "class":
         case "rel":
+        case "href":
+        case "target":
+        case "src":
+        case "alt":
+        case "style":
+        case "title":
           need.push({
             name: block.attributes[0].name,
             value: block.attributes[0].value,
