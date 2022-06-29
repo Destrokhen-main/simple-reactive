@@ -427,15 +427,19 @@ const sReact = (setup) => {
       return false;
     },
     get(target, prop) {
-      if (prop.startsWith('__')) {
-        const editProp = prop.replace("__","");
-        return target[editProp];
-      } else {
-        if (typeof target[prop].value === "object")
-          return JSON.parse(JSON.stringify(target[prop].value));
+        if (prop.startsWith('__')) {
+          const editProp = prop.replace("__","");
+          return target[editProp];
+        } else {
+          if (prop in target) {
+            if (typeof target[prop].value === "object")
+              return JSON.parse(JSON.stringify(target[prop].value));
 
-        return target[prop].value;
-      }
+            return target[prop].value;
+          } else {
+            return undefined;
+          }
+        }
     }
   });
   console.log(Core);
