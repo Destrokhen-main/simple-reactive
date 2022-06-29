@@ -246,9 +246,6 @@ const sReact = (setup) => {
 
   const modifiedData = modifySetupData(data);
   const Core = new Proxy(modifiedData, {
-    getPrototypeOf(target) {
-      return Array.prototype;
-    },
     async set(target, prop, value) {
       if (prop in target) {
         const oldValue = await JSON.stringify(target[prop].value)
