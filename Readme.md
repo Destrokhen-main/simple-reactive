@@ -2,7 +2,8 @@
 
 ### 1. install
 Download the index.js file.
-` <script src="index.js"></script>`
+
+`<script src="index.js"></script>`
 
 ### 2. setup sReact
 To create an object, use this construct
@@ -32,6 +33,7 @@ Requires a `div` element to work
 ```
 
 If you want to use sReact for multiple blocks. Write the selector to the object
+
 `example:`
 ```
 <div id="app1"></div>
