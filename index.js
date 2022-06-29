@@ -175,8 +175,9 @@ const sReact = (setup) => {
                 }
               } else {
                 const cloneNode = child.parent.cloneNode(1);
-                while(cloneNode.attributes.length > 0)
+                while(cloneNode.attributes.length > 0) {
                   cloneNode.removeAttribute(cloneNode.attributes[0].name);
+                }
                 if (typeof arrayItem === "object") {
                   cloneNode.innerHTML = arrayItem.inner;
                   Object.keys(arrayItem).forEach((e) => {
@@ -371,7 +372,9 @@ const sReact = (setup) => {
                     } else {
                       const cloneNode = child.parent.cloneNode(1);
 
-                      while(cloneNode.attributes.length > 0) cloneNode.removeAttribute(cloneNode.attributes[0].name);
+                      while(cloneNode.attributes.length > 0) {
+                        cloneNode.removeAttribute(cloneNode.attributes[0].name);
+                      }
 
                       if (typeof value[z] === "object") {
                         cloneNode.innerHTML = value[z].inner;
