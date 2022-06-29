@@ -31,6 +31,30 @@ Requires a `div` element to work
 </div>
 ```
 
+If you want to use sReact for multiple blocks. Write the selector to the object
+`example:`
+```
+<div id="app1"></div>
+
+<div id="app2"></div>
+
+const sr1 = sReact({
+  body: "#app1",
+  data: {
+    data...
+  }
+})
+
+const sr2 = sReact({
+  body: "#app2",
+  data: {
+    data...
+  }
+})
+```
+
+If you don't specify `body` then by default it will look for `htmlTag`` with `id = "app"`
+
 To match object content to tags, you need to use `tag`.
 
 `example:`

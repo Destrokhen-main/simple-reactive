@@ -238,7 +238,15 @@ const sReact = (setup) => {
 
   const functions = setup["function"] !== undefined ? setup["function"] : null;
   const data = setup["data"] !== undefined ? setup["data"] : null;
-  const app = document.getElementById('app');
+  const body = setup["body"] !== undefined ? setup["body"] : "#app";
+
+  const app = document.querySelector(body);
+  if (app === null) {
+    if(body === "#app")
+      throw new sReactError("can't find `app` htmlTag ");
+    else
+      throw new sReactError(`can't find '${body}' htmlTag `);
+  }
 
   if (data === null) {
     throw new sReactError("object `data` is undefined");
