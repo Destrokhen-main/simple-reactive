@@ -138,7 +138,7 @@ const sReact = (setup) => {
   }
 
   const clearAllAttr = (block) => {
-    const need = [];
+    const needAttr = [];
     while(block.attributes.length > 0) {
       switch (block.attributes[0].name) {
         case "class":
@@ -149,7 +149,7 @@ const sReact = (setup) => {
         case "alt":
         case "style":
         case "title":
-          need.push({
+          needAttr.push({
             name: block.attributes[0].name,
             value: block.attributes[0].value,
           })
@@ -158,8 +158,8 @@ const sReact = (setup) => {
       block.removeAttribute(block.attributes[0].name);
     }
 
-    if (need.length > 0) {
-      need.forEach((item) => {
+    if (needAttr.length > 0) {
+      needAttr.forEach((item) => {
         block.setAttribute(item.name, item.value);
       });
     }
