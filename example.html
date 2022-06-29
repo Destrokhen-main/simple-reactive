@@ -125,16 +125,20 @@
     
     const arSomeText = "this text need print".split("");
     let forward = true;
-    setInterval(() => {
+    const interval = setInterval(() => {
+      try {
       if (forward) {
-        if (arSomeText.length > obj.text.length)
-          obj.text += arSomeText[obj.text.length];
-        else
-          forward = false;
-      } else {
-        obj.text = obj.text.slice(0,obj.text.length-1);
-        if (obj.text.length === 0)
-          forward = true;
+          if (arSomeText.length > obj.text.length)
+            obj.text += arSomeText[obj.text.length];
+          else
+            forward = false;
+        } else {
+          obj.text = obj.text.slice(0,obj.text.length-1);
+          if (obj.text.length === 0)
+            forward = true;
+        }
+      } catch (e) {
+        clearInterval(interval);
       }
     }, 100);
   </script>
