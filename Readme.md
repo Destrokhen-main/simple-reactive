@@ -53,7 +53,7 @@ const sr2 = sReact({
 })
 ```
 
-If you don't specify `body` then by default it will look for `htmlTag`` with `id = "app"`
+If you don't specify `body` then by default it will look for `htmlTag` with `id = "app"`
 
 To match object content to tags, you need to use `tag`.
 
