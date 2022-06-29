@@ -138,10 +138,25 @@ const sReact = (setup) => {
   }
 
   const clearAllAttr = (block) => {
+    const need = [];
     while(block.attributes.length > 0) {
+      switch (block.attributes[0].name) {
+        case "class":
+        case "rel":
+          need.push({
+            name: block.attributes[0].name,
+            value: block.attributes[0].value,
+          })
+          break;
+      }
       block.removeAttribute(block.attributes[0].name);
     }
-    return block;
+
+    if (need.length > 0) {
+      need.forEach((item) => {
+        block.setAttribute(item.name, item.value);
+      });
+    }
   }
 
   const firstDraw = () => {
@@ -181,8 +196,8 @@ const sReact = (setup) => {
                   child.parent.innerHTML = arrayItem;
                 }
               } else {
-                let cloneNode = child.parent.cloneNode(1);
-                cloneNode = clearAllAttr(cloneNode);
+                const cloneNode = child.parent.cloneNode(1);
+                clearAllAttr(cloneNode);
                 if (typeof arrayItem === "object") {
                   cloneNode.innerHTML = arrayItem.inner;
                   Object.keys(arrayItem).forEach((e) => {
@@ -375,9 +390,9 @@ const sReact = (setup) => {
                     if (z === 0) {
                       child.parent.innerHTML = value[z];
                     } else {
-                      let cloneNode = child.parent.cloneNode(1);
+                      const cloneNode = child.parent.cloneNode(1);
 
-                      cloneNode = clearAllAttr(cloneNode);
+                      clearAllAttr(cloneNode);
 
                       if (typeof value[z] === "object") {
                         cloneNode.innerHTML = value[z].inner;
