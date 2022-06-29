@@ -1,4 +1,4 @@
-### Script for simple-reactive v1.0.0
+### Script for simple-reactive v1.5.0
 
 ### 1. install
 Download the index.js file.
@@ -7,26 +7,17 @@ Download the index.js file.
 ### 2. setup sReact
 To create an object, use this construct
 ```
-const sReact = sReact({
-    data: { Variables to be used },
-    functions: { Functions for text modification. }
+const sreact = sReact({
+  data: { Variables to be used },
 });
 ```
 
 `Example:`
 ```
 const sreact = sReact({
-    data: { 
-      text: "some text",
-    },
-    functions: { 
-      modification: (text) => {
-        if (text.length > 10) 
-          return text + " ->"
-        else
-          return text + " <-"
-      }
-    }
+  data: { 
+    text: "some text",
+  }
 });
 ```
 
@@ -36,7 +27,7 @@ Requires a `div` element to work
 `example:`
 ```
 <div id="app">
-    some html here!
+  some html here!
 </div>
 ```
 
@@ -45,7 +36,7 @@ To match object content to tags, you need to use `tag`.
 `example:`
 ```
 <div id="app">
-    <p tag="text"> <The text from the object will be inserted here> </p>
+  <p tag="text"> <-- The text from the object will be inserted here --> </p>
 </div>
 ```
 
@@ -68,8 +59,8 @@ To create a link between input fields and all tags where `tag` is present, you n
 `example:`
 ```
 <div id="app">
-    <p tag="text"></p>
-    <input type="text" model="text" />
+  <p tag="text"></p>
+  <input type="text" model="text" />
 </div>
 ```
 
@@ -78,7 +69,7 @@ You can also link between "select" and "tag"
 `example:`
 ```
 <select model="text">
-    <option value='1'>---1---</option>
+  <option value='1'>---1---</option>
 </select>
 
 <p tag="text"></p>
@@ -87,12 +78,12 @@ You can also link between "select" and "tag"
 
 ### 3.2 Displaying elements with a for loop
 
-### 3.2.1 To create multiple identical elements, add the "for" attribute to the element
+### 3.2.1 To create multiple identical elements, add the "s-for" attribute to the element
 
 `example:`
 ```
 <div id="app">
-  <p for="lst"></p>
+  <p s-for="lst"></p>
 </div>
 ```
 
@@ -126,43 +117,6 @@ const sr = sReact({
     ],
   },
 });
-
-```
-
-### 3.3 Displaying blocks with a for loop
-To create multiple identical blocks, add the "for-blocks" attribute to the element
-
-`example:`
-```
-<div for-block="lst3" style="padding: 10px; border: 1px solid cadetblue">
-    <p fb-title></p>
-    <p fb-description></p>
-</div>
-```
-
-And describe inner tags in data
-
-`example:`
-```
-const sr = sReact({
-  data: {
-    lst3: [
-      {
-        title: "title 1",
-        description: "descr 1",
-      },
-      {
-        title: "title 2",
-        description: "descr 2",
-      },
-      {
-        title: "title 3",
-        description: "descr 3",
-      },
-    ],
-  },
-});
-
 ```
 
 ### 4. attribute `show`
@@ -193,6 +147,39 @@ on the `html tag` will add css style : `display: '' | none`
 
 !be careful!
 
+### 4.1. attribute `if`
+
+You can use boolean variables to draw blocks
+
+add attribute `if` to your htmlTag.
+
+`example:`
+```
+--html--
+<div if="block">
+  Some text here
+</div>
+
+--js--
+const sreact = sReact({
+  block: true
+})
+```
+! for attribute `if` you can use only boolean variables;
+
+p.s: This attribute removes code from html. Be careful with "AddEventListener"
+
+### 4.2. attribute `if-text`
+
+If you need to display different text when a boolean variable is true or false.
+You can use "if-text"
+
+`example:`
+```
+<button id="but" if-text="block" s-true="Hide" s-false="Show"></button>
+```
+attribute `s-true` and `s-false` important
+
 ### 5. Change `data` from code
 
 You can also change reactive variables from code
@@ -212,4 +199,28 @@ OR
 sreact.text = "asd";
 ```
 
+### 5.1 Change `array` in `data`
 
+Unfortunately you can't write code like this.
+
+```
+const sreact = sReact({
+  data: { 
+    text: [1,2,3],
+  }
+});
+
+sreact.text.push(1);
+```
+In this case, the array gets populated, but reactivity doesn't work. To work correctly with reactivity, it’s enough just to get this array before work
+
+`GOOD`
+```
+const ar = sreact.text;
+
+some code...
+
+sreact.text = ar;
+```
+
+In this case, everything will work as it should.

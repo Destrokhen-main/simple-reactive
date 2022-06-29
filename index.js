@@ -1,259 +1,446 @@
-const setupDrawSReact = (Core, listFunction) => {
-  const mainTag = document.getElementById("app");
-  if (mainTag !== null) {
-    const listTags = mainTag.querySelectorAll("*");
+const sReact = (setup) => {
+  class sReactError extends Error {
+    constructor(message) {
+      super(message);
+      this.name = "sReact";
+    }
+  }
 
-    for (let i = 0; i !== listTags.length; i++) {
-      if (listTags[i].getAttribute("tag") !== null) {
-        const prop = listTags[i].getAttribute("tag");
+  const modifySetupData = (data) => {
+    const objectNew = {};
 
-        let text = "";
-        if (typeof Core[prop] === "object") {
-          text = JSON.stringify(Core[prop])
-        } else {
-          text = Core[prop];
+    if (app !== null) {
+      for (let prop in data) {
+        const newProp =  {};
+
+        newProp.value = data[prop];
+        newProp.child = [];
+
+        const child = [];
+
+        /* ! work with `tag`  */
+        const tags = app.querySelectorAll(`*[tag='${prop}']`);
+        if (tags.length !== 0) {
+          tags.forEach((tag) => {
+            child.push({
+              type: "tag",
+              parent: tag,
+            });
+          });
         }
 
-        if (listTags[i].getAttribute("tmode") !== null) {
-          let name = listTags[i].getAttribute("tmode");
+        /* ! work with `for-block` */
+        const forBlocks = app.querySelectorAll(`*[for-block='${prop}']`);
+        if (forBlocks.length !== 0) {
+          forBlocks.forEach((forBlock) => {
+            child.push({
+              type: "for-block",
+              parent: forBlock,
+              child: []
+            });
+          });
+        }
 
-          const isFunc = name.indexOf(/[()]/) !== -1;
-          name = name.replace(/[()]/, "");
+        /* ! work with `s-for` */
+        const forElements = app.querySelectorAll(`*[s-for='${prop}']`);
+        if (forElements.length !== 0) {
+          if (Array.isArray(data[prop])) {
 
-          if (isFunc) {
-            if (name in listFunction) {
-              listTags[i].innerHTML = text + listFunction[name](text);
+            let checkArray = true;
+
+            data[prop].forEach((item) => {
+              if (typeof item === "object" && item["inner"] === undefined) {
+                checkArray = false;
+              }
+            });
+
+            if (checkArray) {
+              forElements.forEach((forElement) => {
+                child.push({
+                  type: "s-for",
+                  parent: forElement,
+                  child: [],
+                });
+              });
             } else {
-              console.error(`can't find name of function`);
-              return false;
+              throw new sReactError("If you want to use object in `s-for`. All object in array need have 1 key `inner`")
             }
           } else {
-            listTags[i].innerHTML = text + name;
+            throw new sReactError("for `s-for` need use only array");
           }
-        } else {
-          listTags[i].innerHTML = text
         }
-      }
 
-      if (listTags[i].getAttribute("show") !== null) {
-        const show = listTags[i].getAttribute("show");
+        /* ! work with `if` */
+        const ifElements = app.querySelectorAll(`*[if='${prop}']`);
+        if (ifElements.length !== 0) {
+          if (typeof data[prop] === "boolean") {
+            ifElements.forEach((ifElement) => {
+              const sIf = document.createElement("sIf");
+              sIf.setAttribute("if", prop);
 
-        const value = Core[show];
-
-        if (value) {
-          listTags[i].style.display = "";
-        } else {
-          listTags[i].style.display = "none";
+              child.push({
+                type: "if",
+                parent: ifElement,
+                plug: sIf,
+              });
+            });
+          } else {
+            throw new sReactError("for 'if' need use only boolean value")
+          }
         }
-      }
 
-      if (listTags[i].getAttribute("for-block") !== null) {
-        const name = listTags[i].getAttribute("for-block");
-        createForBlocks(name, Core);
-      }
+        /* ! work with `show` */
+        const shows = app.querySelectorAll(`*[show='${prop}']`);
+        if (shows.length !== 0) {
+          if (typeof data[prop] === "boolean") {
+            shows.forEach((show) => {
+              child.push({
+                type: "show",
+                parent: show,
+              });
+            });
+          } else {
+            throw new sReactError("for 'show' need use only boolean value")
+          }
+        }
 
-      if (listTags[i].getAttribute("for") !== null) {
-        const name = listTags[i].getAttribute("for");
-        createForElements(name, Core);
+        /* ! work with `if-text` */
+        const ifDraws = app.querySelectorAll(`*[if-text='${prop}']`);
+        if (ifDraws.length !== 0) {
+          if (typeof data[prop] === "boolean") {
+            ifDraws.forEach((ifDraw) => {
+              const trueText = ifDraw.getAttribute("s-true");
+              const falseText = ifDraw.getAttribute("s-false");
+
+              if (trueText !== null && falseText !== null) {
+                child.push({
+                  type: "if-text",
+                  parent: ifDraw,
+                  trueText: trueText,
+                  falseText: falseText,
+                });
+              } else {
+                throw new sReactError("miss `s-true` or `s-false`")
+              }
+            });
+          } else {
+            throw new sReactError("for 'if-text' need use only boolean value")
+          }
+        }
+
+        newProp.child = child;
+        objectNew[prop] = newProp;
       }
+    } else {
+      throw new sReactError("can't find htmlElement with id `app`");
     }
-  } else {
-    console.error("Can't find parent block");
-    return false;
+    return objectNew;
   }
 
-  return true;
-}
-
-const createForElements = (i, Core) => {
-  const chunk = document.querySelectorAll(`*[for="${i}"]`);
-
-  if(chunk.length > 0) {
-    for (let y = 0; y !== chunk.length; y++) {
-      const parent = chunk[y].parentNode
-      const itemTagName = chunk[y].nodeName;
-      let item = chunk[y];
-
-      let selectedValue = "";
-      if (parent.getAttribute("model") !== null) {
-        const node = parent.getAttribute("model");
-        selectedValue = Core[node];
-      }
-
-      if(Array.isArray(Core[i])) {
-        const array = Core[i];
-        let object;
-
-        for (let m = 0; m !== array.length; m++) {
-          if (m === 0) {
-            object = item;
-            object.innerHTML = typeof array[m] === "object" ? array[m].inner : array[m];
-          } else {
-            object = document.createElement(itemTagName);
-            object.innerHTML = typeof array[m] === "object" ? array[m].inner : array[m];
-            item.insertAdjacentElement('afterend', object);
-          }
-
-          if (selectedValue.toString() === array[m].toString()) {
-            object.selected = true;
-          }
-
-          if (typeof array[m] === "object") {
-            for (let k in array[m]) {
-              if (k !== "inner") object.setAttribute(k, array[m][k]);
+  const firstDraw = () => {
+    for (let prop in Core) {
+      const object = Core["__" + prop];
+      if (object.child.length) {
+        object.child.forEach((child) => {
+          if (child.type === "tag") {
+            const value = typeof object.value === "object" ? JSON.stringify(object.value) : object.value;
+            child.parent.innerHTML = value;
+          } else if (child.type === "if") {
+            if (!object.value) {
+              child.parent.insertAdjacentElement('afterend', child.plug);
+              child.parent.remove();
             }
-          }
-
-          item = object;
-        }
-      } else {
-        console.error("for only be used for an array!")
-      }
-    }
-  }
-}
-
-const createForBlocks = (i, Core) => {
-  const chunk = document.querySelectorAll(`*[for-block="${i}"]`);
-  if(chunk.length > 0) {
-    for (let y = 0; y !== chunk.length; y++) {
-      let item = chunk[y];
-
-      if(Array.isArray(Core[i])) {
-        const array = Core[i];
-
-        let object;
-
-        for (let m = 0; m !== array.length; m++) {
-          if (m === 0) {
-            object = item;
-          } else {
-            object = item.cloneNode(true);
-          }
-
-          for (let k in array[m]) {
-            const innerElems = object.querySelectorAll(`[fb-${k}]`);
-            for (let elem of innerElems) {
-              elem.innerHTML = array[m][k];
+          } else if (child.type === "show") {
+            if (!object.value) {
+              child.parent.style.display = "none";
             }
-          }
-          item.insertAdjacentElement('afterend', object)
-          item = object;
-        }
-      }
-    }
-  }
-}
-
-const parentNode = (Core) => {
-  for (const i in Core) {
-    const inputBlocks = document.querySelectorAll(`input[model="${i}"]`);
-    const selectBlock = document.querySelectorAll(`select[model="${i}"]`);
-    if (inputBlocks.length > 0) {
-      for (let y = 0; y !== inputBlocks.length; y++) {
-        const callback = (e) => {
-          if (e.target.getAttribute("type") !== null) {
-            const typeInput = e.target.getAttribute("type");
-            switch (typeInput) {
-              case "number":
-                Core[i] = e.target.value === "" ? 0 : e.target.value;
-                break;
-              default:
-                Core[i] = e.target.value;
-                break;
+          } else if (child.type === "if-text") {
+            if (object.value) {
+              child.parent.innerText = child.trueText;
+            } else {
+              child.parent.innerText = child.falseText;
             }
-          } else {
-            Core[i] = e.target.value;
+          } else if (child.type === "s-for") {
+            object.value.forEach((arrayItem, index) => {
+              if (index === 0) {
+                if (typeof arrayItem === "object") {
+                  child.parent.innerHTML = arrayItem.inner;
+                  Object.keys(arrayItem).forEach((e) => {
+                    if (e !== "inner") {
+                      child.parent.setAttribute(e, arrayItem[e]);
+                    }
+                  })
+                } else {
+                  child.parent.innerHTML = arrayItem;
+                }
+              } else {
+                const cloneNode = child.parent.cloneNode(1);
+                while(cloneNode.attributes.length > 0)
+                  cloneNode.removeAttribute(cloneNode.attributes[0].name);
+                if (typeof arrayItem === "object") {
+                  cloneNode.innerHTML = arrayItem.inner;
+                  Object.keys(arrayItem).forEach((e) => {
+                    if (e !== "inner") {
+                      cloneNode.setAttribute(e, arrayItem[e]);
+                    }
+                  })
+                } else {
+                  cloneNode.innerHTML = arrayItem;
+                }
+                if (child.child.length === 0) {
+                  child.parent.insertAdjacentElement("afterend", cloneNode);
+                  child.child.push(cloneNode);
+                } else {
+                  child.child[child.child.length - 1].insertAdjacentElement("afterend", cloneNode);
+                  child.child.push(cloneNode);
+                }
+              }
+            });
           }
-        }
-
-        inputBlocks[y].addEventListener("keyup", callback);
-        inputBlocks[y].addEventListener("change", callback);
-      }
-    }
-
-    if (selectBlock.length > 0) {
-      for (let y = 0 ; y !== selectBlock.length; y++) {
-        selectBlock[y].addEventListener("change", (e) => {
-          Core[i] = e.target.value;
-        })
+        });
       }
     }
   }
-  return true;
-}
 
-const sReact = (objectData) => {
-  const listFunction = objectData["functions"] !== undefined ? objectData["functions"] : null;
-  const data = objectData["data"] !== undefined ? objectData["data"] : null;
+  const modelParent = () => {
+    if (app !== null) {
+      const listener = (e) => {
+        const prop = e.target.getAttribute("model");
+        Core[prop] = e.target.value;
+      }
+
+      for (let prop in Core) {
+        const value = Core[prop];
+
+        /* model with input */
+        const inputs = app.querySelectorAll(`input[model='${prop}']`);
+        if (inputs.length !== 0) {
+          inputs.forEach((input) => {
+            if (value !== "")
+              input.value = value;
+            input.addEventListener("input", listener)
+          })
+        }
+
+        /* model with select */
+        const selects = app.querySelectorAll(`select[model='${prop}']`);
+        if (selects.length !== 0) {
+          selects.forEach((select) => {
+            select.addEventListener("change", listener);
+            if (value !== "") {
+              select.value = value;
+            }
+          })
+        }
+      }
+    }
+  }
+
+  const functions = setup["function"] !== undefined ? setup["function"] : null;
+  const data = setup["data"] !== undefined ? setup["data"] : null;
+  const app = document.getElementById('app');
 
   if (data === null) {
-    console.error("! Can't create reactive object. Need a data object");
-    return;
+    throw new sReactError("object `data` is undefined");
   }
-  let Core = new Proxy(data, {
-    set(target, prop, n) {
+
+  const modifiedData = modifySetupData(data);
+  const Core = new Proxy(modifiedData, {
+    getPrototypeOf(target) {
+      return Array.prototype;
+    },
+    async set(target, prop, value) {
       if (prop in target) {
-        if (target[prop] !== n) {
-          const allTag = document.querySelectorAll(`*[tag='${prop}']`);
-
-          const showTags = document.querySelectorAll(`*[show='${prop}']`);
-
-          if (showTags.length > 0) {
-            for (let i = 0; i != showTags.length; i++) {
-              if (n) {
-                showTags[i].style.display = "block";
-              } else {
-                showTags[i].style.display = "none";
+        const oldValue = await JSON.stringify(target[prop].value)
+        const newValue = await JSON.stringify(value);
+        if (oldValue !== newValue) {
+          const object = target[prop];
+          if (object.child !== undefined && object.child.length !== 0) {
+            object.child.forEach((child) => {
+              if (child.type === "tag") {
+                const newValue = typeof value === "object" ? JSON.stringify(value) : value;
+                child.parent.innerHTML = newValue;
               }
-            }
-          }
 
-          if (allTag.length > 0) {
-            for (let i = 0; i !== allTag.length; i++) {
-              if (allTag[i].getAttribute("tmode") !== null) {
-                let tMode = allTag[i].getAttribute("tmode");
-                const isFunc = tMode.indexOf(/[()]/) !== -1;
-                tMode = tMode.replace(/[()]/, "");
+              if (child.type === "if") {
+                if (value) {
+                  child.plug.insertAdjacentElement('afterend', child.parent);
+                  child.plug.remove();
+                } else {
+                  child.parent.insertAdjacentElement('afterend', child.plug);
+                  child.parent.remove();
+                }
+              }
 
-                if (isFunc) {
-                  if (tMode in listFunction) {
-                    allTag[i].innerHTML = n + listFunction[tMode](text);
-                  } else {
-                    console.error(`can't find name of function`);
-                    return false;
+              if (child.type === "show") {
+                if (value) {
+                  child.parent.style.display = "";
+                } else {
+                  child.parent.style.display = "none";
+                }
+              }
+
+              if (child.type === "if-text") {
+                if (value) {
+                  child.parent.innerText = child.trueText;
+                } else {
+                  child.parent.innerText = child.falseText;
+                }
+              }
+
+              if (child.type === "s-for") {
+                if (object.value.length > value.length) {
+                  // delete
+                  object.value.forEach((item, index) => {
+                    if (typeof item === "object") {
+                      const oldValue = JSON.stringify(item);
+                      const newValue = JSON.stringify(value[index]);
+
+                      if (oldValue !== newValue) {
+                        if (index === 0) {
+                          child.parent.innerHTML = value[index].inner || "";
+                          Object.keys(value[index]).forEach((e) => {
+                            if (e !== "inner")
+                              child.parent.setAttribute(e, value[index][e] || "");
+                          });
+                        } else {
+                          if (value[index] === undefined) {
+                            child.child[index - 1].remove();
+                            child.child[index - 1] = undefined;
+                          } else {
+                            child.child[index - 1].innerHTML = value[index].inner;
+                            Object.keys(value[index]).forEach((e) => {
+                              if (e !== "inner")
+                                child.child[index - 1].setAttribute(e, value[index][e] || "");
+                            });
+                          }
+                        }
+                      }
+                    } else if (item !== value[index]) {
+                      if (index === 0) {
+                        child.parent.innerHTML = value[index] || "";
+                      } else {
+                        if (value[index] === undefined) {
+                          child.child[index - 1].remove();
+                          child.child[index - 1] = undefined;
+                        } else {
+                          child.child[index - 1].innerHTML = value[index];
+                        }
+                      }
+                    }
+                  });
+                  child.child = child.child.filter(v => v !== undefined);
+                } else if (object.value.length < value.length) {
+                  // add
+                  object.value.forEach((item, index) => {
+                    if (typeof item === "object") {
+                      const oldValue = JSON.stringify(item);
+                      const newValue = JSON.stringify(value[index]);
+                      if (oldValue !== newValue) {
+                        if (index === 0) {
+                          child.parent.innerHTML = value[index].inner;
+                          Object.keys(value[index]).forEach((e) => {
+                            if (e !== "inner")
+                              child.parent.setAttribute(e, value[index][e]);
+                          });
+                        } else {
+                          child.child[index - 1].innerHTML = value[index].inner;
+
+                          Object.keys(value[index]).forEach((e) => {
+                            if (e !== "inner")
+                              child.child[index - 1].setAttribute(e, value[index][e]);
+                          });
+                        }
+                      }
+                    } else if (item !== value[index]) {
+                      if (index === 0) {
+                        child.parent.innerHTML = value[index];
+                      } else {
+                        child.child[index - 1].innerHTML = value[index];
+                      }
+                    }
+                  });
+                  for (let z = object.value.length; z !== value.length; z++) {
+                    if (z === 0) {
+                      child.parent.innerHTML = value[z];
+                    } else {
+                      const cloneNode = child.parent.cloneNode(1);
+
+                      while(cloneNode.attributes.length > 0) cloneNode.removeAttribute(cloneNode.attributes[0].name);
+
+                      if (typeof value[z] === "object") {
+                        cloneNode.innerHTML = value[z].inner;
+                        Object.keys(value[z]).forEach((e) => {
+                          if (e !== "inner")
+                            cloneNode.setAttribute(e, value[z][e]);
+                        });
+                      } else {
+                        cloneNode.innerHTML = value[z];
+                      }
+
+                      if (child.child.length === 0) {
+                        child.parent.insertAdjacentElement("afterend", cloneNode);
+                      } else {
+                        child.child[child.child.length - 1].insertAdjacentElement("afterend", cloneNode);
+                      }
+                      child.child.push(cloneNode);
+                    }
                   }
-                } else {
-                  allTag[i].innerHTML = n + tMode;
-                }
-              } else {
-                if (typeof n === "object") {
-                  allTag[i].innerHTML = JSON.stringify(n);
-                } else {
-                  allTag[i].innerHTML = n;
+                } else if (object.value.length === value.length) {
+                  // mb some edit
+                  object.value.forEach((item, index) => {
+                    if (typeof item === "object") {
+                      const oldValue = JSON.stringify(item);
+                      const newValue = JSON.stringify(value[index]);
+
+                      if (oldValue !== newValue) {
+                        if (index === 0) {
+                          child.parent.innerHTML = value[index].inner;
+                          Object.keys(value[index]).forEach((e) => {
+                            if (e !== "inner")
+                              cloneNode.setAttribute(e, value[index][e]);
+                          });
+                        } else {
+                          child.child[index - 1].innerHTML = value[index].inner;
+                          Object.keys(value[index]).forEach((e) => {
+                            if (e !== "inner")
+                              child.child[index - 1].setAttribute(e, value[index][e]);
+                          });
+                        }
+                      }
+                    } else if (item !== value[index]) {
+                      if (index === 0) {
+                        child.parent.innerHTML = value[index];
+                      } else {
+                        child.child[index - 1].innerHTML = value[index];
+                      }
+                    }
+                  });
                 }
               }
-            }
+            });
           }
+          target[prop].value = value;
+          return true;
         }
-        target[prop] = n;
-        return true;
       }
       return false;
     },
     get(target, prop) {
-      if (prop in target) {
-        return target[prop];
+      if (prop.startsWith('__')) {
+        const editProp = prop.replace("__","");
+        return target[editProp];
+      } else {
+        if (typeof target[prop].value === "object")
+          return JSON.parse(JSON.stringify(target[prop].value));
+
+        return target[prop].value;
       }
     }
   });
+  console.log(Core);
+  firstDraw();
+  modelParent();
 
-  const prerender = setupDrawSReact(Core, listFunction);
-  const parent = parentNode(Core);
-  if (prerender && parent) {
-    return Core;
-  } else {
-    Core = null;
-    console.error("Can't create sReact");
-  }
+  return Core;
 }
