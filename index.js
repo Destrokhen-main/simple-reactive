@@ -269,10 +269,7 @@ const sReact = (setup) => {
 
   const app = document.querySelector(body);
   if (app === null) {
-    if(body === "#app")
-      throw new sReactError("can't find `app` htmlTag ");
-    else
-      throw new sReactError(`can't find '${body}' htmlTag `);
+    throw new sReactError(`can't find '${body}' htmlTag `);
   }
 
   if (data === null) {
