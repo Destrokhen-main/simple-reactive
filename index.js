@@ -286,37 +286,6 @@ const sReact = (setup) => {
           const object = target[prop];
           if (object.child !== undefined && object.child.length !== 0) {
             object.child.forEach((child) => {
-              if (child.type === "tag") {
-                const newValue = typeof value === "object" ? JSON.stringify(value) : value;
-                child.parent.innerHTML = newValue;
-              }
-
-              if (child.type === "if") {
-                if (value) {
-                  child.plug.insertAdjacentElement('afterend', child.parent);
-                  child.plug.remove();
-                } else {
-                  child.parent.insertAdjacentElement('afterend', child.plug);
-                  child.parent.remove();
-                }
-              }
-
-              if (child.type === "show") {
-                if (value) {
-                  child.parent.style.display = "";
-                } else {
-                  child.parent.style.display = "none";
-                }
-              }
-
-              if (child.type === "if-text") {
-                if (value) {
-                  child.parent.innerText = child.trueText;
-                } else {
-                  child.parent.innerText = child.falseText;
-                }
-              }
-
               if (child.type === "s-for") {
                 if (object.value.length > value.length) {
                   // delete
@@ -446,6 +415,37 @@ const sReact = (setup) => {
                     }
                   });
                 }
+              }
+
+              if (child.type === "if") {
+                if (value) {
+                  child.plug.insertAdjacentElement('afterend', child.parent);
+                  child.plug.remove();
+                } else {
+                  child.parent.insertAdjacentElement('afterend', child.plug);
+                  child.parent.remove();
+                }
+              }
+
+              if (child.type === "show") {
+                if (value) {
+                  child.parent.style.display = "";
+                } else {
+                  child.parent.style.display = "none";
+                }
+              }
+
+              if (child.type === "if-text") {
+                if (value) {
+                  child.parent.innerText = child.trueText;
+                } else {
+                  child.parent.innerText = child.falseText;
+                }
+              }
+
+              if (child.type === "tag") {
+                const newValue = typeof value === "object" ? JSON.stringify(value) : value;
+                child.parent.innerHTML = newValue;
               }
             });
           }
