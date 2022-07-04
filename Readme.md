@@ -1,5 +1,7 @@
 ### Script for simple-reactive v1.0.0
 
+Update! Next, version 1.5.0 will be promoted. Please check it out, maybe you will find in it what you are missing in this version.
+
 ### 1. install
 Download the index.js file.
 ` <script src="index.js"></script>`
