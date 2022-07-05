@@ -19,13 +19,13 @@
     <p>Output text from `sample`</p>
     <div>
       <span> from `sample`: </span>
-      <span tag="sample"></span>
+      <span tag="sample" tmode="capitalizeText"></span>
     </div>
     <hr />
     <p>dynamic value</p>
     <div>
       <span> from `sample1` : </span>
-      <span tag="sample1"></span>
+      <span tag="sample1" tmode="doubleText"></span>
     </div>
     <input type="text" model="sample1" placeholder="input some text here" />
     <hr />
@@ -114,7 +114,15 @@
           </div>`
         ],
         text: ""
-      }
+      },
+      functions: {
+        doubleText: (text) => {
+          return text + text;
+        },
+        capitalizeText: (text) => {
+          return text.charAt(0).toUpperCase() + text.slice(1);
+        }
+      },
     });
 
     const arSomeText = "this text need print".split("");
