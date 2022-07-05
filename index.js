@@ -5,19 +5,19 @@ const sReact = (setup) => {
       this.name = "sReact";
     }
   }
-
+  
   const modifySetupData = (data) => {
     const objectNew = {};
-
+    
     if (app !== null) {
       for (let prop in data) {
         const newProp =  {};
-
+        
         newProp.value = data[prop];
         newProp.child = [];
-
+        
         const child = [];
-
+        
         /* ! work with `tag`  */
         const tags = app.querySelectorAll(`*[tag='${prop}']`);
         if (tags.length !== 0) {
@@ -28,7 +28,7 @@ const sReact = (setup) => {
             });
           });
         }
-
+        
         /* ! work with `for-block` */
         const forBlocks = app.querySelectorAll(`*[for-block='${prop}']`);
         if (forBlocks.length !== 0) {
@@ -40,20 +40,20 @@ const sReact = (setup) => {
             });
           });
         }
-
+        
         /* ! work with `s-for` */
         const forElements = app.querySelectorAll(`*[s-for='${prop}']`);
         if (forElements.length !== 0) {
           if (Array.isArray(data[prop])) {
-
+            
             let checkArray = true;
-
+            
             data[prop].forEach((item) => {
               if (typeof item === "object" && item["inner"] === undefined) {
                 checkArray = false;
               }
             });
-
+            
             if (checkArray) {
               forElements.forEach((forElement) => {
                 child.push({
@@ -69,7 +69,7 @@ const sReact = (setup) => {
             throw new sReactError("for `s-for` need use only array");
           }
         }
-
+        
         /* ! work with `if` */
         const ifElements = app.querySelectorAll(`*[if='${prop}']`);
         if (ifElements.length !== 0) {
@@ -77,7 +77,7 @@ const sReact = (setup) => {
             ifElements.forEach((ifElement) => {
               const sIf = document.createElement("sIf");
               sIf.setAttribute("if", prop);
-
+              
               child.push({
                 type: "if",
                 parent: ifElement,
@@ -88,7 +88,7 @@ const sReact = (setup) => {
             throw new sReactError("for 'if' need use only boolean value")
           }
         }
-
+        
         /* ! work with `show` */
         const shows = app.querySelectorAll(`*[show='${prop}']`);
         if (shows.length !== 0) {
@@ -103,7 +103,7 @@ const sReact = (setup) => {
             throw new sReactError("for 'show' need use only boolean value")
           }
         }
-
+        
         /* ! work with `if-text` */
         const ifDraws = app.querySelectorAll(`*[if-text='${prop}']`);
         if (ifDraws.length !== 0) {
@@ -111,7 +111,7 @@ const sReact = (setup) => {
             ifDraws.forEach((ifDraw) => {
               const trueText = ifDraw.getAttribute("s-true");
               const falseText = ifDraw.getAttribute("s-false");
-
+              
               if (trueText !== null && falseText !== null) {
                 child.push({
                   type: "if-text",
@@ -127,16 +127,17 @@ const sReact = (setup) => {
             throw new sReactError("for 'if-text' need use only boolean value")
           }
         }
-
+        
         newProp.child = child;
         objectNew[prop] = newProp;
       }
     } else {
       throw new sReactError("can't find htmlElement with id `app`");
     }
+    
     return objectNew;
   }
-
+  
   const clearAllAttr = (block) => {
     const needAttr = [];
     while(block.attributes.length > 0) {
@@ -157,14 +158,14 @@ const sReact = (setup) => {
       }
       block.removeAttribute(block.attributes[0].name);
     }
-
+    
     if (needAttr.length > 0) {
       needAttr.forEach((item) => {
         block.setAttribute(item.name, item.value);
       });
     }
   }
-
+  
   const firstDraw = () => {
     for (let prop in Core) {
       const object = Core["__" + prop];
@@ -172,7 +173,19 @@ const sReact = (setup) => {
         object.child.forEach((child) => {
           if (child.type === "tag") {
             const value = typeof object.value === "object" ? JSON.stringify(object.value) : object.value;
-            child.parent.innerHTML = value;
+            const tModeValue = child.parent.getAttribute("tmode");
+            
+            if (tModeValue !== null) {
+              if (functions !== null && functions[tModeValue] !== undefined) {
+                const modifyTextFunc = functions[tModeValue];
+                child.parent.innerHTML = modifyTextFunc(value);
+              } else {
+                console.log(functions)
+                console.log(`Функции ${tModeValue} нет в functions`)
+              }
+            } else {
+              child.parent.innerHTML = value;
+            }
           } else if (child.type === "if") {
             if (!object.value) {
               child.parent.insertAdjacentElement('afterend', child.plug);
@@ -228,17 +241,17 @@ const sReact = (setup) => {
       }
     }
   }
-
+  
   const modelParent = () => {
     if (app !== null) {
       const listener = (e) => {
         const prop = e.target.getAttribute("model");
         Core[prop] = e.target.value;
       }
-
+      
       for (let prop in Core) {
         const value = Core[prop];
-
+        
         /* model with input */
         const inputs = app.querySelectorAll(`input[model='${prop}']`);
         if (inputs.length !== 0) {
@@ -248,7 +261,7 @@ const sReact = (setup) => {
             input.addEventListener("input", listener)
           })
         }
-
+        
         /* model with select */
         const selects = app.querySelectorAll(`select[model='${prop}']`);
         if (selects.length !== 0) {
@@ -262,21 +275,21 @@ const sReact = (setup) => {
       }
     }
   }
-
-  const functions = setup["function"] !== undefined ? setup["function"] : null;
+  
+  const functions = setup["functions"] !== undefined ? setup["functions"] : null;
   const data = setup["data"] !== undefined ? setup["data"] : null;
   const body = setup["body"] !== undefined ? setup["body"] : "#app";
-
+  
   const app = document.querySelector(body);
   if (app === null) {
     throw new sReactError(`can't find '${body}' htmlTag `);
   }
-
+  
   if (data === null) {
     throw new sReactError("object `data` is undefined");
   }
-
-  const modifiedData = modifySetupData(data);
+  
+  const modifiedData = modifySetupData(data, functions);
   const Core = new Proxy(modifiedData, {
     async set(target, prop, value) {
       if (prop in target) {
@@ -293,7 +306,7 @@ const sReact = (setup) => {
                     if (typeof item === "object") {
                       const oldValue = JSON.stringify(item);
                       const newValue = JSON.stringify(value[index]);
-
+                      
                       if (oldValue !== newValue) {
                         if (index === 0) {
                           child.parent.innerHTML = value[index].inner || "";
@@ -343,7 +356,7 @@ const sReact = (setup) => {
                           });
                         } else {
                           child.child[index - 1].innerHTML = value[index].inner;
-
+                          
                           Object.keys(value[index]).forEach((e) => {
                             if (e !== "inner")
                               child.child[index - 1].setAttribute(e, value[index][e]);
@@ -363,9 +376,9 @@ const sReact = (setup) => {
                       child.parent.innerHTML = value[z];
                     } else {
                       const cloneNode = child.parent.cloneNode(1);
-
+                      
                       clearAllAttr(cloneNode);
-
+                      
                       if (typeof value[z] === "object") {
                         cloneNode.innerHTML = value[z].inner;
                         Object.keys(value[z]).forEach((e) => {
@@ -375,7 +388,7 @@ const sReact = (setup) => {
                       } else {
                         cloneNode.innerHTML = value[z];
                       }
-
+                      
                       if (child.child.length === 0) {
                         child.parent.insertAdjacentElement("afterend", cloneNode);
                       } else {
@@ -390,7 +403,7 @@ const sReact = (setup) => {
                     if (typeof item === "object") {
                       const oldValue = JSON.stringify(item);
                       const newValue = JSON.stringify(value[index]);
-
+                      
                       if (oldValue !== newValue) {
                         if (index === 0) {
                           child.parent.innerHTML = value[index].inner;
@@ -416,7 +429,7 @@ const sReact = (setup) => {
                   });
                 }
               }
-
+              
               if (child.type === "if") {
                 if (value) {
                   child.plug.insertAdjacentElement('afterend', child.parent);
@@ -426,7 +439,7 @@ const sReact = (setup) => {
                   child.parent.remove();
                 }
               }
-
+              
               if (child.type === "show") {
                 if (value) {
                   child.parent.style.display = "";
@@ -434,7 +447,7 @@ const sReact = (setup) => {
                   child.parent.style.display = "none";
                 }
               }
-
+              
               if (child.type === "if-text") {
                 if (value) {
                   child.parent.innerText = child.trueText;
@@ -442,10 +455,21 @@ const sReact = (setup) => {
                   child.parent.innerText = child.falseText;
                 }
               }
-
+              
               if (child.type === "tag") {
                 const newValue = typeof value === "object" ? JSON.stringify(value) : value;
-                child.parent.innerHTML = newValue;
+                const tModeValue = child.parent.getAttribute("tmode");
+                
+                if (tModeValue !== null) {
+                  if (functions !== null && functions[tModeValue] !== undefined) {
+                    const modifyTextFunc = functions[tModeValue];
+                    child.parent.innerHTML = modifyTextFunc(newValue);
+                  } else {
+                    console.log(`Функции ${tModeValue} нет в functions`)
+                  }
+                } else {
+                  child.parent.innerHTML = newValue;
+                }
               }
             });
           }
@@ -463,7 +487,7 @@ const sReact = (setup) => {
         if (prop in target) {
           if (typeof target[prop].value === "object")
             return JSON.parse(JSON.stringify(target[prop].value));
-
+          
           return target[prop].value;
         } else {
           return undefined;
@@ -473,6 +497,6 @@ const sReact = (setup) => {
   });
   firstDraw();
   modelParent();
-
+  
   return Core;
 }
