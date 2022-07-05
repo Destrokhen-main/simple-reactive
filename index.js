@@ -5,6 +5,80 @@ const sReact = (setup) => {
       this.name = "sReact";
     }
   }
+  
+  const searchInnerDirectives = (elem) => {
+    const elemTagArr = elem.querySelectorAll("[tag]");
+    elemTagArr.forEach(item => {
+      const prop = item.getAttribute("tag");
+      Core["__" + prop] = {
+        ...Core["__" + prop],
+        child: [
+          ...Core["__" + prop].child,
+          {
+            type: "tag",
+            parent: item,
+          },
+        ]
+      }
+    });
+    
+    const elemShowArr = elem.querySelectorAll("[show]");
+    elemShowArr.forEach(item => {
+      const prop = item.getAttribute("show");
+      Core["__" + prop] = {
+        ...Core["__" + prop],
+        child: [
+          ...Core["__" + prop].child,
+          {
+            type: "show",
+            parent: item,
+          },
+        ]
+      }
+    });
+    
+    const elemIfArr = elem.querySelectorAll("[if]");
+    elemIfArr.forEach(item => {
+      const prop = item.getAttribute("if");
+      
+      const sIf = document.createElement("sIf");
+      sIf.setAttribute("if", prop);
+      
+      Core["__" + prop] = {
+        ...Core["__" + prop],
+        child: [
+          ...Core["__" + prop].child,
+          {
+            type: "if",
+            parent: item,
+            plug: sIf,
+          },
+        ]
+      }
+    });
+    
+    const elemIfDrawArr = elem.querySelectorAll("[if-text]");
+    elemIfDrawArr.forEach(item => {
+      const prop = item.getAttribute("if-text");
+      const trueText = item.getAttribute("s-true");
+      const falseText = item.getAttribute("s-false");
+      
+      if (trueText !== null && falseText !== null) {
+        Core["__" + prop] = {
+          ...Core["__" + prop],
+          child: [
+            ...Core["__" + prop].child,
+            {
+              type: "if-text",
+              parent: item,
+              trueText: trueText,
+              falseText: falseText,
+            },
+          ]
+        }
+      }
+    });
+  }
 
   const modifySetupData = (data) => {
     const objectNew = {};
@@ -452,6 +526,10 @@ const sReact = (setup) => {
           target[prop].value = value;
           return true;
         }
+      } else if (prop.startsWith("__")) {
+        const editProp = prop.replace("__","");
+        target[editProp] = value;
+        return true;
       }
       return false;
     },
